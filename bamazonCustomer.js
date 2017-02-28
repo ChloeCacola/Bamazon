@@ -10,21 +10,20 @@ var connection = mysql.createConnection({
 	user: "root",
 	password: "cent430Rim$",
 	database: "Bamazon"
-})
+});
 
 //will display all items available for sale and their specifications 
-	connection.query('SELECT * FROM products', function(err, result) {
+connection.query('SELECT * FROM products', function(err, result) {
 
-		//display error if there is one
-		if(err) {
-			throw err;
-		}
+	//display error if there is one
+	if(err) {
+		throw err;
+	}
+	//log products in a table
+	console.table(result);
+	placeOrder();
 
-		//log products in a table
-		console.table(result);
-		placeOrder();
-
-	});
+});
 
 
 //User prompted to type ID of the product they want to buy
