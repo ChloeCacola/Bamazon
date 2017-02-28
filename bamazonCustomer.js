@@ -44,18 +44,41 @@ function placeOrder() {
 
 		//item_id does not start at 0, therefore iD is stored in a variable in order to properly locate the array position
 		//both variables are converted into numbers
-		var iD = parseInt(response.itemID) - 1;
+		var trueID = response.itemID
+		var iD = parseInt(trueID) - 1;
 		var amount = parseInt(response.quantity);
 
 		connection.query("SELECT * FROM products", function(err, result) {
 
-			if(amount > result[iD].stock_quantity) {
+			var cost = result[iD].price;
+			var inStock = result[iD].stock_quantity;
+			var stockUpdate = inStock - amount;
+
+			if(inStock === 0 && amount > inStock) {
+				console.log("out of stock!")
+				placeOrder();
+
+			}
+		    else if(amount > inStock) {
 				console.log("insufficient quantity");
 				placeOrder();
-			} else {
-			console.log(result[iD].price);
-			console.log(amount);
-		}
+			} 
+			else {
+
+				var total = amount * cost
+
+				connection.query("UPDATE products SET ? WHERE ?", [
+					{
+						stock_quantity: stockUpdate
+					}, {
+						item_id: trueID
+					}
+				]);
+
+				console.log("Your purchase total is:  $" + total);
+
+				connection.end();
+			}
 		});
 
 	});
