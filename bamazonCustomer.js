@@ -1,3 +1,4 @@
+//require these packages
 var inquirer = require("inquirer");
 var mysql = require("mysql");
 var consoleTable = require("console.table");
@@ -11,7 +12,7 @@ var connection = mysql.createConnection({
 	database: "Bamazon"
 })
 
-//will display all items available for sale, including the ids, names, and prices..
+//will display all items available for sale and their specifications 
 	connection.query('SELECT * FROM products', function(err, result) {
 
 		//display error if there is one
@@ -19,15 +20,15 @@ var connection = mysql.createConnection({
 			throw err;
 		}
 
-		//log inventory result in a table
+		//log products in a table
 		console.table(result);
 		placeOrder();
 
 	});
 
-//will then prompt users (inquirer) with the following:
-	//Ask the ID of the product they want to buy
-	//Ask how many units of the product they want to buy
+
+//User prompted to type ID of the product they want to buy
+//User prompted to type how many units of the product they want to buy
 function placeOrder() {
 	inquirer.prompt ([
 	{
@@ -42,8 +43,8 @@ function placeOrder() {
 	}
 	]).then(function(response) {
 
-		//item_id does not start at 0, therefore iD is stored in a variable in order to properly locate the array position
-		//both variables are converted into numbers
+		//item_id does not start at 0, therefore iD is stored in a variable in order to properly locate its position
+		//both id and amount are converted into numbers
 		var trueID = response.itemID
 		var iD = parseInt(trueID) - 1;
 		var amount = parseInt(response.quantity);
@@ -54,19 +55,24 @@ function placeOrder() {
 			var inStock = result[iD].stock_quantity;
 			var stockUpdate = inStock - amount;
 
+			//check if item is in stock
 			if(inStock === 0 && amount > inStock) {
 				console.log("out of stock!")
+				//without being able to fulfill an order, placeOrder will run again.
 				placeOrder();
 
 			}
+			//check if there is sufficient quantity of item for requested amount
 		    else if(amount > inStock) {
 				console.log("insufficient quantity");
+				//without being able to fulfill an order, placeOrder will run again.
 				placeOrder();
 			} 
 			else {
-
+				//calculate the total of the bill
 				var total = amount * cost
 
+				//update the database
 				connection.query("UPDATE products SET ? WHERE ?", [
 					{
 						stock_quantity: stockUpdate
@@ -75,8 +81,10 @@ function placeOrder() {
 					}
 				]);
 
+				//tell customer their total.
 				console.log("Your purchase total is:  $" + total);
 
+				//end the connection.
 				connection.end();
 			}
 		});
@@ -84,10 +92,3 @@ function placeOrder() {
 	});
 
 }
-
-
-//Once order placed, app will check if store has enough product to meet customer request.
-	//IF NOT:  App will log phrase, "insufficient quantity" and prevent order from going through.
-	//IF PRODUCT AVAIL:  App will fulfill customer order..
-		//This means updated SQL database to reflect remaining quantity
-		//Once the update goes through, show customer total cost of their purchase.
