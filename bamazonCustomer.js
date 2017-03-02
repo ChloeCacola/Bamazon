@@ -52,6 +52,7 @@ function placeOrder() {
 
 			var cost = result[iD].price;
 			var inStock = result[iD].stock_quantity;
+			var salesTotal = result[iD].product_sales
 			var stockUpdate = inStock - amount;
 
 			//check if item is in stock
@@ -70,11 +71,22 @@ function placeOrder() {
 			else {
 				//calculate the total of the bill
 				var total = amount * cost
+				//add to the product_sales
+				var salesUpdate = salesTotal + total
 
 				//update the database
 				connection.query("UPDATE products SET ? WHERE ?", [
 					{
 						stock_quantity: stockUpdate
+					}, {
+						item_id: trueID
+					}
+				]);
+
+				//update total revenue from purchased product
+				connection.query("UPDATE products SET ? WHERE ?", [
+					{
+						product_sales: salesUpdate
 					}, {
 						item_id: trueID
 					}
